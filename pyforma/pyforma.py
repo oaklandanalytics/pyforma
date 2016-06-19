@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def residential_sales_proforma(cfg):
@@ -64,7 +65,7 @@ def residential_sales_proforma(cfg):
         total_floor_area = floor_area_including_common_space
 
     # what is pandas for ceil???
-    stories = (total_floor_area / max_footprint).round()
+    stories = np.ceil(total_floor_area / max_footprint)
     footprint_size = total_floor_area / stories
 
     # now compute costs

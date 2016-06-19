@@ -92,9 +92,15 @@ def pro_forma_config_basic():
 
 def test_pyforma_basic_vectorized(pro_forma_config_basic):
 
-    pro_forma_config_basic["parcel_size"] = pd.Series([10000, 20000])
+    pro_forma_config_basic["parcel_size"] = \
+        pd.Series([10000, 20000])
+    pro_forma_config_basic["use_types"]["2br"]["price_per_sqft"] = \
+        pd.Series([750, 800])
 
+    import time
+    t1 = time.time()
     ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+    print time.time()-t1
 
     del ret["num_units_by_type"]
     print pd.DataFrame(ret).transpose()
@@ -106,7 +112,7 @@ def test_pyforma_basic(pro_forma_config_basic):
 
     assert (ret["num_units_by_type"] == [3, 3, 4]).all()
 
-    assert ret["stories"] == 2
+    assert ret["stories"] == 3
 
     assert ret["usable_floor_area"] == 3 * 600 + 3 * 750 + 4 * 850 + 3000
 
@@ -143,7 +149,7 @@ def test_pyforma_basic(pro_forma_config_basic):
 
     assert ret["built_far"] == 1.70375
 
-    assert ret["height"] == 24
+    assert ret["height"] == 36
 
     assert "failure_height" in ret
 
