@@ -59,7 +59,7 @@ def pro_forma_config_basic():
                 "allowable_densities": [5, 15]
             }, "fancy_condos": {
                 "cost_per_sqft": 800,
-                "allowable_densities": [10-20]
+                "allowable_densities": [10, 20]
             }, "ground_floor_retail": {
                 "cost_per_sqft": 600
             }
@@ -88,6 +88,16 @@ def pro_forma_config_basic():
         "building_type": "garden_apartments",
         "built_dua": 10
     }
+
+
+def test_cartesian_product():
+    df = pyforma.cartesian_product(
+        pd.Series([5, 10, 30], name="dua"),
+        pd.Series([1, 1.5, 2], name="far"),
+        pd.Series([1000, 2000, 3000], name="parcel_sizes"),
+        pd.Series([500, 600], name="price_per_sqft")
+    )
+    assert len(df) == 3 * 3 * 3 * 2
 
 
 def test_pyforma_basic_vectorized(pro_forma_config_basic):

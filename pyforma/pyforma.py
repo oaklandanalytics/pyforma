@@ -2,6 +2,15 @@ import pandas as pd
 import numpy as np
 
 
+def cartesian_product(*args):
+    dfs = [pd.DataFrame({s.name: s, "key": 0}) for s in args]
+    df = reduce(
+        lambda df1, df2: df1.merge(df2, how='left', on='key'),
+        dfs)
+    df.drop('key', 1, inplace=True) # drop temp key
+    return df
+
+
 def residential_sales_proforma(cfg):
 
     cfg["use_mix"]["mix"] = pd.Series(cfg["use_mix"]["mix"])
