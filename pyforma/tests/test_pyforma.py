@@ -5,9 +5,9 @@ import numpy as np
 import pytest
 import pprint
 
-pp = pprint.PrettyPrinter(indent=4)
-
 from .. import pyforma
+
+pp = pprint.PrettyPrinter(indent=4)
 
 
 @pytest.fixture

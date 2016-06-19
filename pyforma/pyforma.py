@@ -77,7 +77,8 @@ def residential_sales_proforma(cfg):
     profit = revenue - cost
 
     # check against max_dua
-    failure_dua = cfg["built_dua"] > cfg["max_dua"] if "max_dua" in cfg else False
+    failure_dua = cfg["built_dua"] > cfg["max_dua"] \
+        if "max_dua" in cfg else False
 
     # check against max_far
     built_far = total_floor_area / cfg["parcel_size"]
