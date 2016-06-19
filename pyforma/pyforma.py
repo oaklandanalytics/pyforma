@@ -3,15 +3,25 @@ import numpy as np
 
 
 def cartesian_product(*args):
+    """
+    Return the cartesion product of multiple series as a dataframe -
+    just pass in the series as arguments (see the test)
+    """
+
     dfs = [pd.DataFrame({s.name: s, "key": 0}) for s in args]
     df = reduce(
         lambda df1, df2: df1.merge(df2, how='left', on='key'),
         dfs)
-    df.drop('key', 1, inplace=True) # drop temp key
+    df.drop('key', 1, inplace=True)   # drop temp key
     return df
 
 
 def residential_sales_proforma(cfg):
+    """
+    This takes a hierarchical Python object of a certain form and
+    passes basic the same.  Documenting the structure is not well
+    suited to pydocs - see the Readme instead.
+    """
 
     cfg["use_mix"]["mix"] = pd.Series(cfg["use_mix"]["mix"])
 

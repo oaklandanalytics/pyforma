@@ -91,6 +91,7 @@ def pro_forma_config_basic():
 
 
 def test_cartesian_product():
+
     df = pyforma.cartesian_product(
         pd.Series([5, 10, 30], name="dua"),
         pd.Series([1, 1.5, 2], name="far"),
@@ -104,8 +105,8 @@ def test_cartesian_product():
 
     assert df.dua.value_counts().loc[5] == 3 * 3 * 2
 
-    assert len(df.query("dua == 5 and far == 1.5 and parcel_sizes == 1000"+
-        " and price_per_sqft == 600")) == 1
+    assert len(df.query("dua == 5 and far == 1.5 and parcel_sizes == 1000" +
+                        " and price_per_sqft == 600")) == 1
 
 
 def test_pyforma_basic_vectorized(pro_forma_config_basic):
