@@ -3,6 +3,9 @@ import os
 import pandas as pd
 import numpy as np
 import pytest
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 from .. import pyforma
 
@@ -87,13 +90,23 @@ def pro_forma_config_basic():
     }
 
 
+def test_pyforma_basic_vectorized(pro_forma_config_basic):
+
+    pro_forma_config_basic["parcel_size"] = pd.Series([10000, 20000])
+
+    ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+
+    del ret["num_units_by_type"]
+    print pd.DataFrame(ret).transpose()
+
+
 def test_pyforma_basic(pro_forma_config_basic):
 
     ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
 
     assert (ret["num_units_by_type"] == [3, 3, 4]).all()
 
-    assert ret["stories"] == 3
+    assert ret["stories"] == 2
 
     assert ret["usable_floor_area"] == 3 * 600 + 3 * 750 + 4 * 850 + 3000
 
@@ -128,6 +141,10 @@ def test_pyforma_basic(pro_forma_config_basic):
 
     assert ret["building_type"] == "garden_apartments"
 
-    assert "height" in ret["failures"]
+    assert ret["built_far"] == 1.70375
 
-    assert "far" in ret["failures"]
+    assert ret["height"] == 24
+
+    assert "failure_height" in ret
+
+    assert "failure_far" in ret

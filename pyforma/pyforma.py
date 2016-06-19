@@ -1,10 +1,9 @@
-import numpy as np
-import math
+import pandas as pd
 
 
 def residential_sales_proforma(cfg):
 
-    cfg["use_mix"]["mix"] = np.array(cfg["use_mix"]["mix"])
+    cfg["use_mix"]["mix"] = pd.Series(cfg["use_mix"]["mix"])
 
     # this allow non-int numbers of units
     num_units_by_type = cfg["use_mix"]["mix"] * cfg["built_dua"]
@@ -64,7 +63,8 @@ def residential_sales_proforma(cfg):
     elif parking_type == "underground":
         total_floor_area = floor_area_including_common_space
 
-    stories = math.ceil(total_floor_area / max_footprint)
+    # what is pandas for ceil???
+    stories = (total_floor_area / max_footprint).round()
     footprint_size = total_floor_area / stories
 
     # now compute costs
@@ -75,34 +75,27 @@ def residential_sales_proforma(cfg):
 
     profit = revenue - cost
 
-    # now compute constraint failures
-    failures = {}
-
     # check against max_dua
-    if "max_dua" in cfg and cfg["built_dua"] > cfg["max_dua"]:
-        failures["dua"] = "Built dua exceeds max dua ({} > {})".\
-            format(cfg["built_dua"], cfg["max_dua"])
+    failure_dua = cfg["built_dua"] > cfg["max_dua"] if "max_dua" in cfg else False
 
     # check against max_far
     built_far = total_floor_area / cfg["parcel_size"]
-    if "max_far" in cfg and built_far > cfg["max_far"]:
-        failures["far"] = "Built far exceeds max far ({} > {})".\
-            format(built_far, cfg["max_far"])
+    if "max_far" in cfg:
+        failure_far = built_far > cfg["max_far"]
 
     # check against max_height
     height = stories * cfg["height_per_story"]
-    if "max_height" in cfg and height > cfg["max_height"]:
-        failures["height"] = "Built height exceeds max height ({} > {})".\
-            format(height, cfg["max_height"])
+    if "max_height" in cfg:
+        failure_height = height > cfg["max_height"]
 
     # check against buiding type densities
-    if cfg["built_dua"] < building_type["allowable_densities"][0] or \
-       cfg["built_dua"] > building_type["allowable_densities"][1]:
-        failures["building_type"] = \
-            "Build dua out of building type range ({} > {})".\
-            format(cfg["built_dua"], buiding_type["allowable_densities"])
+    failure_btype = \
+        (cfg["built_dua"] < building_type["allowable_densities"][0]) | \
+        (cfg["built_dua"] > building_type["allowable_densities"][1])
 
     return {
+        "built_far": built_far,
+        "height": height,
         "num_units_by_type": num_units_by_type,
         "usable_floor_area": usable_floor_area,
         "floor_area_including_common_space": floor_area_including_common_space,
@@ -119,6 +112,9 @@ def residential_sales_proforma(cfg):
         "cost": cost,
         "profit": profit,
         "stories": stories,
-        "failures": failures,
+        "failure_dua": failure_dua,
+        "failure_far": failure_far,
+        "failure_height": failure_height,
+        "failure_btype": failure_btype,
         "building_type": cfg["building_type"]
     }
