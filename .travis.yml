@@ -17,6 +17,6 @@ install:
 - pip install pytest-cov coveralls pep8
 script:
 - pep8 .
-- py.test --cov urbansim --cov-report term-missing
+- py.test --cov pyforma --cov-report term-missing
 after_success:
 - coveralls
