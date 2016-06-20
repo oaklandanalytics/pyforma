@@ -114,12 +114,14 @@ def test_pyforma_basic_vectorized(pro_forma_config_basic):
 
     cfg = pro_forma_config_basic
 
-    df = pyforma.cartesian_product(
+    series = [
         pd.Series(np.arange(1, 300, 5), name="dua"),
         pd.Series(np.arange(.25, 8, .5), name="far"),
         pd.Series(np.arange(1000, 100000, 10000), name="parcel_size"),
         pd.Series(np.arange(500, 2000, 250), name="price_per_sqft")
-    )
+    ]
+    df = pyforma.cartesian_product(*series)
+    print pyforma.describe_cartesian_product(*series)
 
     pro_forma_config_basic["parcel_size"] = df.parcel_size
     pro_forma_config_basic["use_types"]["2br"]["price_per_sqft"] = \

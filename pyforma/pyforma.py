@@ -2,16 +2,19 @@ import pandas as pd
 import numpy as np
 
 
+def describe_cartesian_product(*args):
+    n = reduce(lambda x, y: x * y, [len(s) for s in args])
+    s = reduce(lambda x, y: str(x) + " x " + str(y),
+               [len (s) for s in args]) + " = " + str(n)
+    return s
+
+
 def cartesian_product(*args):
     """
     Return the cartesion product of multiple series as a dataframe -
     just pass in the series as arguments (see the test)
-
     """
 
-    n = reduce(lambda x, y: x * y, [len(s) for s in args])
-    if n > 1000000:
-        print "WARNING: cross product will generate df of length {}".format(n)
     dfs = [pd.DataFrame({s.name: s, "key": 0}) for s in args]
     df = reduce(
         lambda df1, df2: df1.merge(df2, how='left', on='key'),
