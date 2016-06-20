@@ -6,8 +6,12 @@ def cartesian_product(*args):
     """
     Return the cartesion product of multiple series as a dataframe -
     just pass in the series as arguments (see the test)
+
     """
 
+    n = reduce(lambda x, y: x * y, [len(s) for s in args])
+    if n > 1000000:
+        print "WARNING: cross product will generate df of length {}".format(n)
     dfs = [pd.DataFrame({s.name: s, "key": 0}) for s in args]
     df = reduce(
         lambda df1, df2: df1.merge(df2, how='left', on='key'),
@@ -73,7 +77,7 @@ def residential_sales_proforma(cfg):
     if parking_type == "surface":
         if max_footprint - parking_area < .1 * cfg["parcel_size"]:
             # building has to be 10% of the parcel
-            raise Error("Parking covers >90% of the parcel")
+            raise Error("Parking covers >90%% of the parcel")
         max_footprint -= parking_area
         total_floor_area = floor_area_including_common_space
 
@@ -83,7 +87,6 @@ def residential_sales_proforma(cfg):
     elif parking_type == "underground":
         total_floor_area = floor_area_including_common_space
 
-    # what is pandas for ceil???
     stories = np.ceil(total_floor_area / max_footprint)
     footprint_size = total_floor_area / stories
 

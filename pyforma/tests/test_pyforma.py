@@ -1,4 +1,5 @@
 import os
+import time
 
 import pandas as pd
 import numpy as np
@@ -111,18 +112,47 @@ def test_cartesian_product():
 
 def test_pyforma_basic_vectorized(pro_forma_config_basic):
 
-    pro_forma_config_basic["parcel_size"] = \
-        pd.Series([10000, 20000])
-    pro_forma_config_basic["use_types"]["2br"]["price_per_sqft"] = \
-        pd.Series([750, 800])
+    cfg = pro_forma_config_basic
 
-    import time
+    df = pyforma.cartesian_product(
+        pd.Series(np.arange(1, 300, 5), name="dua"),
+        pd.Series(np.arange(.25, 8, .5), name="far"),
+        pd.Series(np.arange(1000, 100000, 10000), name="parcel_size"),
+        pd.Series(np.arange(500, 2000, 250), name="price_per_sqft")
+    )
+
+    pro_forma_config_basic["parcel_size"] = df.parcel_size
+    pro_forma_config_basic["use_types"]["2br"]["price_per_sqft"] = \
+        df.price_per_sqft
+
     t1 = time.time()
     ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
-    print time.time()-t1
+    t2 = time.time()
+    assert t2 - t1 < 1.0
 
+    print "Ran {} pro forma in {:.2f}s".format(len(df), t2-t1)
+
+    num_2_brs = ret["num_units_by_type"][2]
     del ret["num_units_by_type"]
-    print pd.DataFrame(ret).transpose()
+    ret = pd.DataFrame(ret)
+
+    one, two, three = df.loc[0], df.loc[1], df.loc[2]
+    # only thing in the assumptions that's different is the price
+    assert one.dua == two.dua == three.dua
+    assert one.far == two.far == three.far
+    assert one.parcel_size == two.parcel_size == three.parcel_size
+    assert one.price_per_sqft + 500 == two.price_per_sqft + 250 == \
+        three.price_per_sqft
+
+    # since the only thing that's different is the price, the revenue
+    # and profit should be different by the number of 2brs, the size of
+    # the 2 brs, and the difference in the price per size
+    one, two, three = ret.loc[0], ret.loc[1], ret.loc[2]
+    assert 17.0375 == one.built_far == two.built_far == three.built_far
+    assert two.profit - one.profit == \
+        num_2_brs * cfg["use_types"]["2br"]["size"] * 250
+    assert three.revenue - two.revenue == \
+        num_2_brs * cfg["use_types"]["2br"]["size"] * 250
 
 
 def test_pyforma_basic(pro_forma_config_basic):
