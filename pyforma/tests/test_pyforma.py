@@ -110,6 +110,45 @@ def test_cartesian_product():
                         " and price_per_sqft == 600")) == 1
 
 
+def test_performance_of_vectorized(pro_forma_config_basic):
+
+    cfg = pro_forma_config_basic
+
+    series = [
+        pd.Series(np.arange(1, 300, 5), name="dua"),
+        pd.Series(np.arange(.25, 8, .5), name="far"),
+        pd.Series(np.arange(1000, 100000, 50000), name="parcel_size"),
+        pd.Series(np.arange(500, 2000, 500), name="price_per_sqft")
+    ]
+    df = pyforma.cartesian_product(*series)
+
+    cfg["parcel_size"] = df.parcel_size
+    cfg["max_dua"] = df.dua
+    cfg["max_far"] = df.far
+    cfg["use_types"]["2br"]["price_per_sqft"] = df.price_per_sqft
+
+    t1 = time.time()
+    ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+    elapsed1 = time.time() - t1
+
+    t1 = time.time()
+    for index, row in df.iterrows():
+        cfg["parcel_size"] = row.parcel_size
+        cfg["max_dua"] = row.dua
+        cfg["max_far"] = row.far
+        cfg["use_types"]["2br"]["price_per_sqft"] = row.price_per_sqft
+        ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+    elapsed2 = time.time() - t1
+
+    factor = elapsed2 / elapsed1
+
+    # if you run enough pro formas in a batch, it's 900x faster to run
+    # the pandas version than to run them one by one - when you run
+    # fewer pro formas, like you kind of have to do in a unit test, it
+    # will only be 300x faster as is asserted here
+    assert factor > 300
+
+
 def test_pyforma_basic_vectorized(pro_forma_config_basic):
 
     cfg = pro_forma_config_basic

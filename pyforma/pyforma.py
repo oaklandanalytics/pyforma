@@ -3,9 +3,12 @@ import numpy as np
 
 
 def describe_cartesian_product(*args):
+    """
+    Returns a string to describe
+    """
     n = reduce(lambda x, y: x * y, [len(s) for s in args])
     s = reduce(lambda x, y: str(x) + " x " + str(y),
-               [len (s) for s in args]) + " = " + str(n)
+               [len(s) for s in args]) + " = " + str(n)
     return s
 
 
