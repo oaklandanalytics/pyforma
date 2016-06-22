@@ -149,6 +149,41 @@ def test_performance_of_vectorized(pro_forma_config_basic):
     assert factor > 300
 
 
+def test_different_parking_types(pro_forma_config_basic):
+
+    cfg = pro_forma_config_basic
+
+    d = {}
+    for parking in ["surface", "deck", "underground"]:
+
+        cfg["parking_type"] = parking
+        d[parking] = pyforma.residential_sales_proforma(pro_forma_config_basic)
+
+    assert d["surface"]["parking_spaces"] == d["deck"]["parking_spaces"] == \
+        d["underground"]["parking_spaces"]
+
+    spaces = d["surface"]["parking_spaces"]
+    assert d["surface"]["parking_area"] == \
+        spaces * cfg["parking_types"]["surface"]["space_size"]
+
+    # surface pushes building up, underground keeps is low
+    assert d["surface"]["stories"] > d["deck"]["stories"] > \
+        d["underground"]["stories"]
+
+    parking_far = d["deck"]["parking_area"] / cfg["parcel_size"]
+    # these don't perfectly equal so do this weird subtraction
+    assert d["deck"]["built_far"] - \
+        parking_far - d["underground"]["built_far"] < .01
+    assert d["deck"]["built_far"] - \
+        parking_far - d["surface"]["built_far"] < .01
+
+    assert -1 * (d["deck"]["profit"] - d["surface"]["profit"]) == \
+        d["deck"]["parking_area"] * \
+        cfg["parking_types"]["deck"]["space_cost_sqft"] - \
+        d["surface"]["parking_area"] * \
+        cfg["parking_types"]["surface"]["space_cost_sqft"]
+
+
 def test_pyforma_basic_vectorized(pro_forma_config_basic):
 
     cfg = pro_forma_config_basic
