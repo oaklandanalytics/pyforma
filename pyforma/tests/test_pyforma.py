@@ -156,7 +156,8 @@ def test_different_parking_types(pro_forma_config_basic):
     for parking in ["surface", "deck", "underground"]:
 
         cfg["parking_type"] = parking
-        d[parking] = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
+        d[parking] = \
+            pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
 
     assert d["surface"]["parking_spaces"] == d["deck"]["parking_spaces"] == \
         d["underground"]["parking_spaces"]
