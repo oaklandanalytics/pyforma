@@ -26,7 +26,7 @@ def cartesian_product(*args):
     return df
 
 
-def residential_sales_proforma(cfg):
+def spot_residential_sales_proforma(cfg):
     """
     This takes a hierarchical Python object of a certain form and
     passes basic the same.  Documenting the structure is not well

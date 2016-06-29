@@ -66,7 +66,6 @@ def pro_forma_config_basic():
             }
         },
         "parcel_size": 10000,
-        "floor_area_ratio": 3,
         "cap_rate": .06,
         "max_far": 1.2,
         "max_height": 20,
@@ -128,7 +127,7 @@ def test_performance_of_vectorized(pro_forma_config_basic):
     cfg["use_types"]["2br"]["price_per_sqft"] = df.price_per_sqft
 
     t1 = time.time()
-    ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+    ret = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
     elapsed1 = time.time() - t1
 
     t1 = time.time()
@@ -137,7 +136,7 @@ def test_performance_of_vectorized(pro_forma_config_basic):
         cfg["max_dua"] = row.dua
         cfg["max_far"] = row.far
         cfg["use_types"]["2br"]["price_per_sqft"] = row.price_per_sqft
-        ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+        ret = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
     elapsed2 = time.time() - t1
 
     factor = elapsed2 / elapsed1
@@ -146,7 +145,7 @@ def test_performance_of_vectorized(pro_forma_config_basic):
     # the pandas version than to run them one by one - when you run
     # fewer pro formas, like you kind of have to do in a unit test, it
     # will only be 300x faster as is asserted here
-    assert factor > 300
+    assert factor > 250
 
 
 def test_different_parking_types(pro_forma_config_basic):
@@ -157,7 +156,7 @@ def test_different_parking_types(pro_forma_config_basic):
     for parking in ["surface", "deck", "underground"]:
 
         cfg["parking_type"] = parking
-        d[parking] = pyforma.residential_sales_proforma(pro_forma_config_basic)
+        d[parking] = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
 
     assert d["surface"]["parking_spaces"] == d["deck"]["parking_spaces"] == \
         d["underground"]["parking_spaces"]
@@ -202,7 +201,7 @@ def test_pyforma_basic_vectorized(pro_forma_config_basic):
         df.price_per_sqft
 
     t1 = time.time()
-    ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+    ret = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
     t2 = time.time()
     assert t2 - t1 < 1.0
 
@@ -233,7 +232,7 @@ def test_pyforma_basic_vectorized(pro_forma_config_basic):
 
 def test_pyforma_basic(pro_forma_config_basic):
 
-    ret = pyforma.residential_sales_proforma(pro_forma_config_basic)
+    ret = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
 
     assert (ret["num_units_by_type"] == [3, 3, 4]).all()
 
