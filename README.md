@@ -43,81 +43,81 @@ The steps for computing a spot pro formas are roughly:
 The spot pro forma API looks like this (a good place to start to learn how to use the API is to explore the thorough unit tests in the `tests` directory - this example comes directly from the tests).
 
 ```json
-    {
-        "use_types": {
-            "0br": {
-                "price_per_sqft": 600,
-                "size": 600,
-                "parking_ratio": 0.3
-            },
-            "1br": {
-                "price_per_sqft": 650,
-                "size": 750,
-                "parking_ratio": 1.0
-            },
-            "2br": {
-                "price_per_sqft": 700,
-                "size": 850,
-                "parking_ratio": 1.5
-            },
-            "3br+": {
-                "price_per_sqft": 750,
-                "size": 1000,
-                "parking_ratio": 2
-            },
-            "retail": {
-                "rent_per_sqft": 3,
-                "parking_ratio": 2
-            }
+{
+    "use_types": {
+        "0br": {
+            "price_per_sqft": 600,
+            "size": 600,
+            "parking_ratio": 0.3
         },
-        "parking_types": {
-            "surface": {
-                "space_size": 300,
-                "space_cost_sqft": 30
-            },
-            "deck": {
-                "space_size": 250,
-                "space_cost_sqft": 90
-            },
-            "underground": {
-                "space_size": 250,
-                "space_cost_sqft": 110
-            }
+        "1br": {
+            "price_per_sqft": 650,
+            "size": 750,
+            "parking_ratio": 1.0
         },
-        "building_types": {
-            "garden_apartments": {
-                "cost_per_sqft": 400,
-                "allowable_densities": [5, 15]
-            }, "fancy_condos": {
-                "cost_per_sqft": 800,
-                "allowable_densities": [10, 20]
-            }, "ground_floor_retail": {
-                "cost_per_sqft": 600
-            }
+        "2br": {
+            "price_per_sqft": 700,
+            "size": 850,
+            "parking_ratio": 1.5
         },
-        "parcel_size": 10000,
-        "cap_rate": .06,
-        "max_far": 1.2,
-        "max_height": 20,
-        "height_per_story": 12,
-        "parcel_efficiency": .8,
-        "building_efficiency": .8,
-        "cost_shifter": 1.2,
-        "parcel_acquisition_cost": 1000000,
-        "non_res_parking_denom": 1000,
-        "use_mix": {
-            "use_types": ["0br", "1br", "2br"],
-            "mix": [.3, .3, .4],
-            "ground_floor": {
-                "use": "retail",
-                "size": 3000
-            }
+        "3br+": {
+            "price_per_sqft": 750,
+            "size": 1000,
+            "parking_ratio": 2
         },
-        "absorption_in_months": 20,  # XXX not used yet
-        "parking_type": "deck",
-        "building_type": "garden_apartments",
-        "built_dua": 10
-    }
+        "retail": {
+            "rent_per_sqft": 3,
+            "parking_ratio": 2
+        }
+    },
+    "parking_types": {
+        "surface": {
+            "space_size": 300,
+            "space_cost_sqft": 30
+        },
+        "deck": {
+            "space_size": 250,
+            "space_cost_sqft": 90
+        },
+        "underground": {
+            "space_size": 250,
+            "space_cost_sqft": 110
+        }
+    },
+    "building_types": {
+        "garden_apartments": {
+            "cost_per_sqft": 400,
+            "allowable_densities": [5, 15]
+        }, "fancy_condos": {
+            "cost_per_sqft": 800,
+            "allowable_densities": [10, 20]
+        }, "ground_floor_retail": {
+            "cost_per_sqft": 600
+        }
+    },
+    "parcel_size": 10000,
+    "cap_rate": 0.06,
+    "max_far": 1.2,
+    "max_height": 20,
+    "height_per_story": 12,
+    "parcel_efficiency": 0.8,
+    "building_efficiency": 0.8,
+    "cost_shifter": 1.2,
+    "parcel_acquisition_cost": 1000000,
+    "non_res_parking_denom": 1000,
+    "use_mix": {
+        "use_types": ["0br", "1br", "2br"],
+        "mix": [0.3, 0.3, 0.4],
+        "ground_floor": {
+            "use": "retail",
+            "size": 3000
+        }
+    },
+    "absorption_in_months": 20,  # XXX not used yet
+    "parking_type": "deck",
+    "building_type": "garden_apartments",
+    "built_dua": 10
+}
 ```
 
 Hopefully if you've followed most of the discussion so far, this API will be fairly self explanatory.  For starters there is a `unit_types` object which has parameters for each of the unit types.  Each unit type has a price per sqft, size, and parking ratio as described in the previous section.  
