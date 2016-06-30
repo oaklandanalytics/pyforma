@@ -66,7 +66,7 @@ The spot pro forma API looks like this (a good place to start to learn how to us
             "parking_ratio": 2
         },
         "retail": {
-            "rent_per_sqft": 3,
+            "rent_per_sqft": 30,
             "parking_ratio": 2
         }
     },
