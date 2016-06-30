@@ -138,8 +138,8 @@ Various scalar parameters are as follows:
 * cap_rate converts yearly rent to price, so a cap_rate of .05 means a rent of $30/sqft/year is equivalent to a sales price of $600/sqft.
 * max_height and max_far give density limits that will be tested after the building is configured.
 * height_per_story converts number of stories to building height.
-* the parcel_efficiency gives the maximum building footprint size based on the size of the parcel, and building_efficiency gives the ratio of sellable area to total area (accounts for common space)
-* cost_shifter is optional and can be used to specify the RSMeans area cost shifter
+* the parcel_efficiency gives the maximum building footprint size based on the size of the parcel, and building_efficiency gives the ratio of sellable area to total area (accounts for common space).
+* cost_shifter is optional and can be used to specify the RSMeans area cost shifter.
 * parcel_acquistion_cost is the cost of buying the parcel and building - this number typically comes out of some sort of statistical model.
 * finally, parking_type, building_type, and built_dua are three of the most important parameters as they specify exactly what form the current computations will take.  Although there are many building types, a few parking types, and many different densities at which a building can be built, each pro forma only uses one.
 
