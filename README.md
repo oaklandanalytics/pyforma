@@ -113,27 +113,29 @@ The spot pro forma API looks like this (a good place to start to learn how to us
             "size": 3000
         }
     },
-    "absorption_in_months": 20,  # XXX not used yet
+    "absorption_in_months": 20,
     "parking_type": "deck",
     "building_type": "garden_apartments",
     "built_dua": 10
 }
 ```
 
-Hopefully if you've followed most of the discussion so far, this API will be fairly self explanatory.  For starters there is a `unit_types` object which has parameters for each of the unit types.  Each unit type has a price per sqft, size, and parking ratio as described in the previous section.  
+Hopefully if you've followed most of the discussion so far, this API will be fairly easy to pick up on.  We'll parallel the logic described above with a discussion of the parameters in the API.
 
-Non-residential uses, which are used as ground floor uses (e.g. retail), have rent per sqft as this is standard and gets converted to a price per sqft, also specfied in the obejct, as well as a parking ratio which uses sqft rather than number of untis and the `non_res_parking_denom` which gives the deominator for non-residential parking ratios.
+For starters there is a `unit_types` object which has parameters for each of the unit types.  Each unit type has a price per sqft, size, and parking ratio as described in the previous section.  
+
+Non-residential uses, which are used as ground floor uses (e.g. retail), have rent per sqft as this is standard and gets converted to a price per sqft using the cap rate also specfied in the obejct, as well as a parking ratio which uses sqft rather than number of untis and the `non_res_parking_denom` which gives the deominator for non-residential parking ratios.
 
 Next comes a `parking_types` object which contains keys of surface, deck, and underground and have parking space sizes and costs per sqft.
 
 Next comes a `building_types` object which contains all *possible* building types even though only one building type will actually be used for each pro forma (this will come in handy when vectorizing the operation).  Think of this as the data that comes out of the RSMeans handbook.  Right now, a building type gets a description name, and values of cost per sqft and reasonable limits on the number of stories.
 
-Finally comes a `use_mix` object which has two lists of `use_types` and their `mix` which should be of the same length and the floats in the mix list should add up to 1.0.  This is the ratio of different unit types in the building.  There can also be a `ground_floor` object which gives the type and size of any non-residential space in the building.
+Finally comes a `use_mix` object which has two lists of `use_types` and their `mix` which should be of the same length and the floats in the mix list should add up to 1.0.  This is the ratio of different unit types in the building (e.g. 30% 1BR and 70% 2BR).  There can also be a `ground_floor` object which gives the type and size of any non-residential space in the building.
 
 Various scalar parameters are as follows:
 
 * parcel_size is the size of the parcel in square feet.
-* cap_rate converts yearly rent to price, so a cap_rate of .05 means a rent of $3/sqft/year is equivalent to a sales price of $60/sqft.
+* cap_rate converts yearly rent to price, so a cap_rate of .05 means a rent of $30/sqft/year is equivalent to a sales price of $600/sqft.
 * max_height and max_far give density limits that will be tested after the building is configured.
 * height_per_story converts number of stories to building height.
 * the parcel_efficiency gives the maximum building footprint size based on the size of the parcel, and building_efficiency gives the ratio of sellable area to total area (accounts for common space)
