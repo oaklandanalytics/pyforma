@@ -216,7 +216,7 @@ Similar to the object passed as input, the `spot_residential_sales_proforma` ret
 * failure_btype - a True/False value as to whether the density of this building exceeds the range specified as allowable for a given building type - e.g. no townhome is 5 stories; the building will be analyzed as requested but this is considered a "building type failure"
 * building_type - this is passed in by the user and returned to the user for convenience
 
-```json
+```
 {
     "built_far": built_far,
     "height": height,
