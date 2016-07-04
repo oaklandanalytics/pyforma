@@ -127,7 +127,7 @@ def test_performance_of_vectorized(pro_forma_config_basic):
     cfg["use_types"]["2br"]["price_per_sqft"] = df.price_per_sqft
 
     t1 = time.time()
-    ret = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
+    ret = pyforma.spot_residential_sales_proforma(cfg)
     elapsed1 = time.time() - t1
 
     t1 = time.time()

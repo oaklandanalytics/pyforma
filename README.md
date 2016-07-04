@@ -140,3 +140,106 @@ Various scalar parameters are as follows:
 * finally, parking_type, building_type, and built_dua are three of the most important parameters as they specify exactly what form the current computations will take.  Although there are many building types, a few parking types, and many different densities at which a building can be built, each pro forma only uses one.
 
 ## Running pyforma far and wide
+
+The real power of this API is not to call the API once with scalar values, but to pass in a Pandas Series of values (a vector of values) and perform the computation more efficiently.  Python is notoriously slow at performing "for loop" operations, and in fact in this case **using a Pandas Series and letting pyforma do the computation for you is *900* times faster than calling this API with scalars in a for loop**.  The use of scalars in the API is not for large numbers of operations, say 100k calls or more.
+
+It's also clear that there are two main use cases for using pyforma:
+
+* The "far" in the heading, which would be to explore many (potentially millions) of pro formas run on a single parcel to optimize the return on that parcel
+
+* The "wide" in the heading, which would be to explore a pro forma on a large number of parcels (potentially millions) at the max zoning allowed or similar
+
+In fact, the API is general enough that you can make any calls you want and aggregate them however you want.  For instance, the user of the api could run 20 pro formas per parcel for 2 million parcels, or about 40 million parcels in only a few seconds.  The 20 pro formas per parcel could test various inflection points, or parking types, etc, and then maximizing the return per parcel before doing an aggregation across all parcels like summing feasible units in an area.
+
+## A vectorized example, incluing use of the cartesian_product helper
+
+Here is an example of using pyforma in a vectorized manner (again drawn from the unit tests).  First imagine you have an object called `cfg` which is set to the object from the previous example.  In this example we want to test a series of dua values, a series of far values, a series of parcel sizes, and series of price per square foot numbers, and we want to test *all* combinations of those Series.
+
+pyforma has a helper method to assist with this use case, called `cartesian_product`, which will perform the cross product for you - just pass the Series as arguments to the method like shown below.  The method will create a DataFrame which has columns that are named the same as each series, and will create a row in the DataFrame with every combination of values of the passed Series (and do so efficiently).  So if you pass four Series, with lengths 2, 3, 4, and 3 respectively, the length of the output DataFrame will be 2 * 3 * 4 * 3 = 72.  This is obviously polynomial expansion so use judiciously.
+
+Once you have the set of values you want to test, simply substitute the Pandas Series for the previous scalar values (in this case the output of `cartesian_product` but could also be the actual values taken from parcels throughout a city), and finally call the appropriate method to run the pro formas.
+
+```python 
+df = pyforma.cartesian_product([
+    pd.Series(np.arange(1, 300, 5), name="dua"),
+    pd.Series(np.arange(.25, 8, .5), name="far"),
+    pd.Series(np.arange(1000, 100000, 50000), name="parcel_size"),
+    pd.Series(np.arange(500, 2000, 500), name="price_per_sqft")
+])
+
+# cfg is initially set to the object from the previous example
+cfg["parcel_size"] = df.parcel_size
+cfg["max_dua"] = df.dua
+cfg["max_far"] = df.far
+cfg["use_types"]["2br"]["price_per_sqft"] = df.price_per_sqft
+
+ret = pyforma.spot_residential_sales_proforma(cfg)
+```
+
+## A note on parking types and vectorization
+
+At this point there are three parking types, and thus the scalar passed takes one of the values "surface", "deck", and "underground".  For now, these can't be vectorized in a Series which mixes these values.  This keeps the code simple internally, but will probably change at a future date.  For now, simply call the method 3 times if you want to test multiple parking types.
+
+## Benchmarks
+
+Current benchmarks for the style of pro forma that pyforma current supports will run 18 million pro formas per second.
+
+## Outputs (what the API returns)
+
+Similar to the object passed as input, the `spot_residential_sales_proforma` returns a Python dictionary with key-value pairs.  If the values passed are scalars, the values returned will be scalars.  If any of the values passed are Series, most of the values returned will be Series as well.  Below is a list and description of the keys returned and a sample return object.
+
+* built_far - the actual floor are ratio for the building
+* height - the height for this building
+* num_units_by_type - a list of the number of each type of unit in the mix array passed in (in units rather than in proportions).  For now these values can be partial units (floats).
+* usable_floor_area - The amount of floor area (can be spread among floors) that is inside a unit or non-residential area
+* floor_area_including_commin_space - The usable floor area plus the shared space
+* ground_floor_type - this is passed in by the user and returned to the user for convenience
+* ground_floor_size - this is passed in by the user and returned to the user for convenience
+* footprint_size - the area of the building footprint
+* revenue_from_the_ground_floor - if there is ground floor non-residential space, this is the revenue that space generates (a full price, not a yearly rent)
+* parking_type - this is passed in by the user and returned to the user for convenience
+* parking_spaces - the total number of parking spaces this building will require
+* parking_area - the area of said parking spaces
+* parking_cost - the cost of said parking spaces
+* total_floor_area - the floor area plus common spaces plus parking (if it's not surface parking)
+* revenue - the total revenue the building generates - i.e. an estimate of the NPV
+* cost - the total cost to construct the building, which includes usable space, common space, and parking
+* profit - revenue minus cost, duh (includes acquistion cost for the parcel in addition to construction cost)
+* stories - the number of stories of the building
+* failure_dua - a True/False value as to whether the building has a zoning failure where is exceeds the max DUA value
+* failure_far - a True/False value as to whether the building has a zoning failure where is exceeds the max FAR value
+* failure_height - a True/False value as to whether the building has a zoning failure where is exceeds the max height value
+* failure_btype - a True/False value as to whether the density of this building exceeds the range specified as allowable for a given building type - e.g. no townhome is 5 stories; the building will be analyzed as requested but this is considered a "building type failure"
+* building_type - this is passed in by the user and returned to the user for convenience
+
+```json
+{
+    "built_far": built_far,
+    "height": height,
+    "num_units_by_type": num_units_by_type,
+    "usable_floor_area": usable_floor_area,
+    "floor_area_including_common_space": floor_area_including_common_space,
+    "ground_floor_type": ground_floor_type,
+    "ground_floor_size": ground_floor_size,
+    "footprint_size": footprint_size,
+    "revenue_from_ground_floor": revenue_from_ground_floor,
+    "parking_type": parking_type,
+    "parking_spaces": parking_spaces,
+    "parking_area": parking_area,
+    "parking_cost": parking_cost,
+    "total_floor_area": total_floor_area,
+    "revenue": revenue,
+    "cost": cost,
+    "profit": profit,
+    "stories": stories,
+    "failure_dua": failure_dua,
+    "failure_far": failure_far,
+    "failure_height": failure_height,
+    "failure_btype": failure_btype,
+    "building_type": building_type
+}
+```
+
+## Zoning failures
+
+There are four zoning failures that are described in detail above - they are dua, far, height, and building type.  At first it is not obvious why the API should even allow zoning to be violated, but this api is written to be as flexible as possible, and the user is free to pass in many different kinds of buildings.  They might be taller than the max height, they might be 10 story townhomes or 1 story condos, but when the results don't make sense this will be flagged as zoning failures.  Make sure to check the zoning failures if your use case requires it.
