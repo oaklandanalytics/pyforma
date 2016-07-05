@@ -4,13 +4,13 @@ Real estate pro formas in Python
 
 [![Build Status](https://travis-ci.org/fscottfoti/pyforma.svg?branch=master)](https://travis-ci.org/fscottfoti/pyforma) [![Coverage Status](https://coveralls.io/repos/github/fscottfoti/pyforma/badge.svg?branch=master)](https://coveralls.io/github/fscottfoti/pyforma?branch=master)
 
-The pro formas contained in this project are taught in real estate analysis classes and analyze which kinds of building(s) can be built on a plot of land by analyzing inflows and outflows of cash that will be gained and lost while constructing and selling a building.
+The pro formas contained in this project are taught in real estate analysis classes and predict which kinds of building(s) can be built on a plot of land by summing inflows and outflows of cash that will be gained and lost while constructing and selling a building.
 
-Pro formas range from exceptionally simple to extraordinarily complex.  Most of the pro formas contained in this project are more on the simple side as the purpose of this project is typically to run pro formas over large parts of a city to learn, for instance, the impact of an affordable housing policy on the number of housing units generated across the entire city.
+Pro formas range from exceptionally simple to extraordinarily complex.  Most of the pro formas contained in this project are relatively simple as the purpose of this project is to run pro formas over large parts of a city to learn, for instance, the impact of an affordable housing policy on the number of housing units generated across the entire city.
 
-From a programming perspective, this project hopes to write a reasonable API to execute pro formas in code, rather than the de facto standard for pro formas, which is Excel.  The API we chose is a hierarchical object, which clearly takes some inspiration from Javascript (this is the de rigueur appoach in JS), but the first implementation is written in Python as we think Python is a simpler language to get started running basic data science applications.  A javascript version of many of these pro formas will eventually be written so as to perform analysis in an interacrive fashion directly in the browser.
+From a programming perspective, this project hopes to write a reasonable API to execute pro formas in code, rather than the de facto standard for pro formas, which is Excel.  The API we chose is a hierarchical object, which clearly takes some inspiration from Javascript (this is the de rigueur appoach in JS), but the first implementation is written in Python as we think Python is a simpler language to get started running basic data science applications.  A javascript version of many of these pro formas will eventually be written so as to perform analysis in an interactive fashion directly in the browser.
 
-Additionally, after many years of working with Python Pandas, I've determined that running vectorized financial analysis is challenging to both read and write.  When we're discussing pro formas, the typical user will be coming from an Excel background, and the code they read and write should not be complicated vector and matrix operations (e.g. argmax or dot product or matrix multiply).  On the other hand, Pandas runs roughly 900 times faster than a simple Python "for" loop.
+Additionally, after many years of working with Python Pandas, I've determined that running vectorized financial analysis is challenging to both read and write.  The typical real estate analyst comes from an Excel background, and the code he or she reads and writes should not be complicated vector and matrix operations (e.g. argmax or dot product or matrix multiply).  On the other hand, Pandas runs roughly 900 times faster than a simple Python "for" loop.
 
 The decision we made was thus to make the API first operate on scalars (i.e. numbers) so that the simple logic and intent of the API can become clear, and to allow the substitution of a pd.Series (a vector) for each scalar in almost all places in order to gain performance improvements over large datasets.
 
@@ -18,7 +18,7 @@ This has two additional benefits.  First, sometimes a value is not known for *ev
 
 ## Spot Pro Forma
 
-The simplest pro forma we call a `spot` pro forma because it does not consider cash flows over time.  In this case most inflows and outflows are in costs per square foot and sales prices per sqft.  This pro forma is mainy an accounting of policies like parking ratios, ground floor retail, unit mixes and the like.  Even though it's so simple it's extrodinarily powerful as the level of detail in data necessary to run most parcel-scale pro formas is simply not available across the scope of a city.
+The simplest pro forma we call a `spot` pro forma because it does not consider cash flows over time.  In this case most inflows and outflows are in costs per square foot and sales prices per sqft.  This pro forma is mainly an accounting of policies like parking ratios, ground floor retail, unit mixes and the like.  Even though it's so simple it's extrodinarily powerful as the level of detail in data necessary to run most parcel-scale pro formas is simply not available across the scope of a city, and the effect of such specific analysis on a city-wide scale would be modest.
 
 The steps for computing a spot pro formas are roughly:
 
@@ -30,11 +30,11 @@ The steps for computing a spot pro formas are roughly:
 
 * Take the number of parking spaces and the parking type specified of the user to compute the total built area and cost of parking.
 
-* Apply a net to grossing factor for common spaces.
+* Apply a net to gross factor for common spaces.
 
-* Based on the parking type (surface, deck, or underground), configure the building on the parcel so that you know the building footprint and number of stories.
+* Based on the parking type (surface, deck, or underground), configure the building on the parcel to compute the area of the building footprint and number of stories.
 
-* Compute profit as revenue minus cost.
+* Compute profit as revenues minus costs.
 
 * Check for constraint failures if the user passes a building configuration that conflicts with the building that gets contructed (e.g. garden apartments can't be more than 3 stories tall).  Also check for zoning violations such as maximum FAR and maximum height limits.
 
@@ -124,23 +124,23 @@ Hopefully if you've followed most of the discussion so far, this API will be fai
 
 For starters there is a `unit_types` object which has parameters for each of the unit types.  Each unit type has a price per sqft, size, and parking ratio as described in the previous section.  
 
-Non-residential uses, which are used as ground floor uses (e.g. retail), have rent per sqft as this is standard and gets converted to a price per sqft using the cap rate also specfied in the obejct, as well as a parking ratio which uses sqft rather than number of untis and the `non_res_parking_denom` which gives the deominator for non-residential parking ratios.
+Non-residential uses, which are the ground floor uses (e.g. retail), have rent per sqft as this is standard and gets converted to a price per sqft using the cap rate also specfied in the object, as well as a parking ratio which uses square feet rather than number of untis and the `non_res_parking_denom` which gives the deominator for non-residential parking ratios.
 
 Next comes a `parking_types` object which contains keys of surface, deck, and underground and have parking space sizes and costs per sqft.
 
-Next comes a `building_types` object which contains all *possible* building types even though only one building type will actually be used for each pro forma (this will come in handy when vectorizing the operation).  Think of this as the data that comes out of the RSMeans handbook.  Right now, a building type gets a description name, and values of cost per sqft and reasonable limits on the number of stories.
+Next there is a `building_types` object which contains all *possible* building types even though only one building type will actually be used for each pro forma (this will come in handy when vectorizing the operation).  Think of this as the data that comes out of the RSMeans handbook.  Right now, a building type gets a description name, and values of cost per sqft and reasonable limits on the number of stories.
 
 Finally comes a `use_mix` object which has two lists of `use_types` and their `mix` which should be of the same length and the floats in the mix list should add up to 1.0.  This is the ratio of different unit types in the building (e.g. 30% 1BR and 70% 2BR).  There can also be a `ground_floor` object which gives the type and size of any non-residential space in the building.
 
 Various scalar parameters are as follows:
 
-* parcel_size is the size of the parcel in square feet.
-* cap_rate converts yearly rent to price, so a cap_rate of .05 means a rent of $30/sqft/year is equivalent to a sales price of $600/sqft.
-* max_height and max_far give density limits that will be tested after the building is configured.
-* height_per_story converts number of stories to building height.
-* the parcel_efficiency gives the maximum building footprint size based on the size of the parcel, and building_efficiency gives the ratio of sellable area to total area (accounts for common space).
-* cost_shifter is optional and can be used to specify the RSMeans area cost shifter.
-* parcel_acquistion_cost is the cost of buying the parcel and building - this number typically comes out of some sort of statistical model.
+* parcel_size is the size of the parcel in square feet
+* cap_rate converts yearly rent to price, so a cap_rate of .05 means a rent of $30/sqft/year is equivalent to a sales price of $600/sqft
+* max_height and max_far give density limits that will be tested after the building is configured
+* height_per_story converts number of stories to building height
+* the parcel_efficiency gives the maximum building footprint size based on the size of the parcel, and building_efficiency gives the ratio of sellable area to total area (accounts for common space)
+* cost_shifter is optional and can be used to specify the RSMeans area cost shifter
+* parcel_acquistion_cost is the cost of buying the parcel and building - this number typically comes out of some sort of statistical model
 * finally, parking_type, building_type, and built_dua are three of the most important parameters as they specify exactly what form the current computations will take.  Although there are many building types, a few parking types, and many different densities at which a building can be built, each pro forma only uses one.
 
 ## Running pyforma far and wide
@@ -153,11 +153,11 @@ It's also clear that there are two main use cases for using pyforma:
 
 * The "wide" in the heading, which would be to explore a pro forma on a large number of parcels (potentially millions) at the max zoning allowed or similar
 
-In fact, the API is general enough that you can make any calls you want and aggregate them however you want.  For instance, the user of the api could run 20 pro formas per parcel for 2 million parcels, or about 40 million parcels in only a few seconds.  The 20 pro formas per parcel could test various inflection points, or parking types, etc, and then maximizing the return per parcel before doing an aggregation across all parcels like summing feasible units in an area.
+In fact, the API is general simple enough that you can make any calls you want and aggregate them however you want.  For instance, the user of the API could run 20 pro formas per parcel for 2 million parcels, or about 40 million parcels in only a few seconds.  The 20 pro formas per parcel could test various inflection points, or parking types, etc, and then maximize the return per parcel before doing an aggregation across all parcels like summing feasible units in an area.
 
 ## A vectorized example, incluing use of the cartesian_product helper
 
-Here is an example of using pyforma in a vectorized manner (again drawn from the unit tests).  First imagine you have an object called `cfg` which is set to the object from the previous example.  In this example we want to test a series of dua values, a series of far values, a series of parcel sizes, and series of price per square foot numbers, and we want to test *all* combinations of those Series.
+Here is an example of using pyforma in a vectorized manner (again drawn from the unit tests).  First imagine you have an object called `cfg` which is set to the configuration object from the previous example.  In this example we want to test a series of DUA values, a series of FAR values, a series of parcel sizes, and a series of price per square foot numbers, and we want to test *all* combinations of those Series.
 
 pyforma has a helper method to assist with this use case, called `cartesian_product`, which will perform the cross product for you - just pass the Series as arguments to the method like shown below.  The method will create a DataFrame which has columns that are named the same as each series, and will create a row in the DataFrame with every combination of values of the passed Series (and do so efficiently).  So if you pass four Series, with lengths 2, 3, 4, and 3 respectively, the length of the output DataFrame will be 2 * 3 * 4 * 3 = 72.  This is obviously polynomial expansion so use judiciously.
 
@@ -246,4 +246,4 @@ Similar to the object passed as input, the `spot_residential_sales_proforma` ret
 
 ## Zoning failures
 
-There are four zoning failures that are described in detail above - they are dua, far, height, and building type.  At first it is not obvious why the API should even allow zoning to be violated, but this api is written to be as flexible as possible, and the user is free to pass in many different kinds of buildings.  They might be taller than the max height, they might be 10 story townhomes or 1 story condos, but when the results don't make sense this will be flagged as zoning failures.  Make sure to check the zoning failures if your use case requires it.
+There are four zoning failures that are described in detail above - they are DUA, FAR, height, and building type.  At first it is not obvious why the API should even allow zoning to be violated, but this API is written to be as flexible as possible, and the user is free to pass in many different kinds of buildings.  They might be taller than the max height, they might be 10 story townhomes or 1 story condos, but when the results don't make sense this will be flagged as a constraint failure.  Make sure to check the constraint failures if your use case requires it.
