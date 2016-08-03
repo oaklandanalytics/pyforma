@@ -33,17 +33,23 @@ def spot_residential_sales_proforma(cfg):
     suited to pydocs - see the Readme instead.
     """
 
-    cfg["use_mix"]["mix"] = pd.Series(cfg["use_mix"]["mix"])
+    parcel_acres = cfg["parcel_size"] / 43560.0
 
-    # this allow non-int numbers of units
-    num_units_by_type = cfg["use_mix"]["mix"] * cfg["built_dua"]
+    num_units_by_type = {"residential_units": 0}
 
     # compute basic measures for floor area in units
     usable_floor_area = 0
     revenue = 0
     parking_spaces = 0
-    for use_type, num_units in \
-            zip(cfg["use_mix"]["use_types"], num_units_by_type):
+    for use_type, mix in \
+            zip(cfg["use_mix"]["use_types"], cfg["use_mix"]["mix"]):
+
+        # this allow non-int numbers of units
+        num_units = mix * cfg["built_dua"] * parcel_acres
+
+        num_units_by_type["residential_units"] += num_units
+
+        num_units_by_type[use_type + "_num_units"] = num_units
 
         use_cfg = cfg["use_types"][use_type]
 
@@ -123,10 +129,9 @@ def spot_residential_sales_proforma(cfg):
         (cfg["built_dua"] < building_type["allowable_densities"][0]) | \
         (cfg["built_dua"] > building_type["allowable_densities"][1])
 
-    return {
+    out = {
         "built_far": built_far,
         "height": height,
-        "num_units_by_type": num_units_by_type,
         "usable_floor_area": usable_floor_area,
         "floor_area_including_common_space": floor_area_including_common_space,
         "ground_floor_type": ground_floor_type,
@@ -148,3 +153,8 @@ def spot_residential_sales_proforma(cfg):
         "failure_btype": failure_btype,
         "building_type": cfg["building_type"]
     }
+
+    for k, v in num_units_by_type.iteritems():
+        out[k] = v
+
+    return out
