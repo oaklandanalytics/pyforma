@@ -282,3 +282,71 @@ def test_pyforma_basic(pro_forma_config_basic):
     assert "failure_height" in ret
 
     assert "failure_far" in ret
+
+
+def test_average_unit_size(pro_forma_config_basic):
+
+    ret = pyforma.average_unit_size(pro_forma_config_basic)
+
+    assert ret == 600 * .3 + 750 * .3 + 850 * .4
+
+
+def test_affordable_housing(pro_forma_config_basic):
+
+    price_per_sqft_in = pd.Series([400, 500, 600])
+
+    price_per_sqft = pyforma.price_per_sqft_with_affordable_housing(
+        price_per_sqft_in,           # price per sqft
+        1000,                        # sqft per unit
+        125000,                      # AMI
+        .8,                          # pct of AMI
+        .75,                         # price multiplier for 1BR
+        .05,                         # interest rate
+        0                            # pct of affordable units
+    )
+
+    # should be equal if it's 100% not affordable passed in
+    np.testing.assert_array_equal(price_per_sqft_in, price_per_sqft)
+
+    price_per_sqft = pyforma.price_per_sqft_with_affordable_housing(
+        price_per_sqft_in,           # price per sqft
+        1000,                        # sqft per unit
+        125000,                      # AMI
+        .8,                          # pct of AMI
+        .75,                         # price multiplier for 1BR
+        .05,                         # interest rate
+        1.0                          # pct of affordable units
+    )
+
+    # for these numbers, this is the price per sqft affordable
+    np.testing.assert_allclose(price_per_sqft, [495]*3)
+
+    # now test a blended version
+    price_per_sqft = pyforma.price_per_sqft_with_affordable_housing(
+        price_per_sqft_in,           # price per sqft
+        1000,                        # sqft per unit
+        125000,                      # AMI
+        .8,                          # pct of AMI
+        .75,                         # price multiplier for 1BR
+        .05,                         # interest rate
+        .25                          # pct of affordable units
+    )
+
+    # for these numbers, this is the price per sqft affordable
+    np.testing.assert_allclose(price_per_sqft, [423.75,  498.75,  573.75])
+
+    # test running through the json api too
+    pro_forma_config_basic["affordable_housing"] = {
+        "AMI": 80000,
+        "depth_of_affordability": .8,
+        "pct_affordable_units": .2,
+        "price_multiplier_by_type": {
+            "0br": .7,
+            "1br": .75,
+            "2br": .9,
+            "3br+": 1.04
+        }
+    }
+    ret = pyforma.spot_residential_sales_proforma(pro_forma_config_basic)
+
+    assert ret["affordable_units"] == .2 * ret["residential_units"]
