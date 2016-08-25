@@ -2,7 +2,7 @@
 
 Real estate pro formas in Python
 
-[![Build Status](https://travis-ci.org/oaklandanalytics/pyforma.svg?branch=master)](https://travis-ci.org/fscottfoti/pyforma) [![Coverage Status](https://coveralls.io/repos/github/oaklandanalytics/pyforma/badge.svg?branch=master)](https://coveralls.io/github/fscottfoti/pyforma?branch=master)
+[![Build Status](https://travis-ci.org/oaklandanalytics/pyforma.svg?branch=master)](https://travis-ci.org/oaklandanalytics/pyforma) [![Coverage Status](https://coveralls.io/repos/github/oaklandanalytics/pyforma/badge.svg?branch=master)](https://coveralls.io/github/oaklandanalytics/pyforma?branch=master)
 
 The pro formas contained in this project are taught in real estate analysis classes and predict which kinds of building(s) can be built on a plot of land by summing inflows and outflows of cash that will be gained and lost while constructing and selling a building.
 
