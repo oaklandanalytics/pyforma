@@ -144,6 +144,39 @@ Various scalar parameters are as follows:
 * parcel_acquistion_cost is the cost of buying the parcel and building - this number typically comes out of some sort of statistical model
 * finally, parking_type, building_type, and built_dua are three of the most important parameters as they specify exactly what form the current computations will take.  Although there are many building types, a few parking types, and many different densities at which a building can be built, each pro forma only uses one.
 
+## Settings for affordable / inclusionary housing
+
+**pyforma** has support to calculate the impact of affordable / inclusionary housing.  To enable affordable housing, include a sub-dictionary with the key affordable_housing and keys like the following (include as part of the larger config object described above).  Keys include
+
+* AMI - the area median income, which is usually specified by HUD for current affordable housing policy, but which could be forecast median incomes for future years.  As before, this can be a scalar value or a Series of values per parcel.
+
+* depth_of_affordability is the percent of AMI at which the housing should be affordable.  A value of 1.0 would be equivalent to AMI, and values are usually less than 1.0 in current housing policy.
+
+* pct_affordable_units is the percentage of affordable units which are required for a development to be build.  A value of .2 would mean 20% of the units built would be affordable at this percentage of AMI.  This value can, and probably should, be varied by jurisdiction and in fact can be varied by parcel for complete flexibility.
+
+* price_multiplier_by_type is a dictionary where keys are unit types as are specified elsewhere in the config object.  These are also multipliers which are usually set by policy such that different size units should be affordable at different levels of AMI - obviously smaller units are usually set to be affordable at smaller multiples of AMI, while larger units should be set higher.  Note that setting 
+
+```
+...
+"affordable_housing": {
+    "AMI": 80000,
+    "depth_of_affordability": .8,
+    "pct_affordable_units": .2,
+    "price_multiplier_by_type": {
+        "0br": .7,
+        "1br": .75,
+        "2br": .9,
+        "3br+": 1.04
+    }
+}
+...
+```
+
+If "affordable_housing" is set as an input, "affordable_units" will be set as a key in the output, which will be a Series providing the number of affordable units per development.
+
+Note that the purpose of these parameters is to adjust the profitability of developments, which necessarily reduces the probability of a development being built relative to developments which have no inclusionary housing.  Thus an increase in affordable housing in an urban county and strong market like San Francisco, will probably work, and create potentially large numbers of affordability, while at the same time providing a suburbanizing force to development region-wide.  This is in fact the whole purpose of running analyses like these.  Also note that at some level of inclusionary housing, depending on market conditions, a development can go from profitable to unprofitable, which is why inclusionary rates are often linked to market cycles.
+
+
 ## Running pyforma far and wide
 
 The real power of this API is not to call the API once with scalar values, but to pass in a Pandas Series of values (a vector of values) and perform the computation more efficiently.  Python is notoriously slow at performing "for loop" operations, and in fact in this case **using a Pandas Series and letting pyforma do the computation for you is *900* times faster than calling this API with scalars in a for loop**.  The use of scalars in the API is not for large numbers of operations, say 100k calls or more.

@@ -9,6 +9,7 @@ def describe_cartesian_product(*args):
     n = reduce(lambda x, y: x * y, [len(s) for s in args])
     s = reduce(lambda x, y: str(x) + " x " + str(y),
                [len(s) for s in args]) + " = " + str(n)
+
     return s
 
 
@@ -26,11 +27,51 @@ def cartesian_product(*args):
     return df
 
 
+def price_per_sqft_with_affordable_housing(
+    price_per_sqft,
+    sqft_per_unit,
+    AMI,
+    depth_of_affordability,
+    price_multiplier,
+    cap_rate,
+    pct_affordable_units
+):
+
+    AMI *= depth_of_affordability
+
+    monthly_payment = AMI * .33 / 12 * price_multiplier
+
+    value_of_payment = monthly_payment * 12 / cap_rate
+
+    affordable_price_per_sqft = value_of_payment / sqft_per_unit
+
+    blended_price_per_sqft = \
+        pct_affordable_units * affordable_price_per_sqft + \
+        (1-pct_affordable_units) * price_per_sqft
+
+    return blended_price_per_sqft
+
+
+def average_unit_size(cfg):
+    """
+    Compute the overall average unit size, combining the unit mix
+    and sizes per unit
+    """
+
+    sizes = 0
+    for use_type, mix in \
+            zip(cfg["use_mix"]["use_types"], cfg["use_mix"]["mix"]):
+
+        sizes += cfg["use_types"][use_type]["size"] * mix
+
+    return sizes
+
+
 def spot_residential_sales_proforma(cfg):
     """
     This takes a hierarchical Python object of a certain form and
-    passes basic the same.  Documenting the structure is not well
-    suited to pydocs - see the Readme instead.
+    passes back another Python object.  Documenting the structure
+    is not well suited to pydocs - see the Readme instead.
     """
 
     parcel_acres = cfg["parcel_size"] / 43560.0
@@ -54,7 +95,25 @@ def spot_residential_sales_proforma(cfg):
         use_cfg = cfg["use_types"][use_type]
 
         usable_floor_area += use_cfg["size"] * num_units
-        revenue += use_cfg["size"] * use_cfg["price_per_sqft"] * num_units
+
+        if "affordable_housing" in cfg:
+
+            aff_cfg = cfg["affordable_housing"]
+            price_per_sqft = price_per_sqft_with_affordable_housing(
+                use_cfg["price_per_sqft"],
+                use_cfg["size"],
+                aff_cfg["AMI"],
+                aff_cfg.get("depth_of_affordability", 1.0),
+                aff_cfg["price_multiplier_by_type"][use_type],
+                cfg["cap_rate"],
+                aff_cfg["pct_affordable_units"]
+            )
+
+        else:
+
+            price_per_sqft = use_cfg["price_per_sqft"]
+
+        revenue += use_cfg["size"] * price_per_sqft * num_units
         parking_spaces += use_cfg["parking_ratio"] * num_units
 
     # add in ground floor measures
@@ -156,5 +215,9 @@ def spot_residential_sales_proforma(cfg):
 
     for k, v in num_units_by_type.iteritems():
         out[k] = v
+
+    if "affordable_housing" in cfg:
+        out["affordable_units"] = out["residential_units"] * \
+            cfg["affordable_housing"]["pct_affordable_units"]
 
     return out
