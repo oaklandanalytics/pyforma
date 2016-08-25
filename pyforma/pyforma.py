@@ -9,6 +9,7 @@ def describe_cartesian_product(*args):
     n = reduce(lambda x, y: x * y, [len(s) for s in args])
     s = reduce(lambda x, y: str(x) + " x " + str(y),
                [len(s) for s in args]) + " = " + str(n)
+
     return s
 
 
